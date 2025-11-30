@@ -17,10 +17,13 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
+    protected $table = 'usuarios';
+
     protected $fillable = [
-        'name',
-        'email',
+        'nombre',
+        'correo',
         'password',
+        'rol',
     ];
 
     /**
@@ -42,4 +45,11 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+
+    public function gastos()
+    {
+        // 'usuario_id' es la llave foránea en la tabla gastos
+        return $this->hasMany(Gasto::class, 'usuario_id');
+    }
 }
