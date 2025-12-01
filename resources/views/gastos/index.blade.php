@@ -49,7 +49,9 @@
                                             {{ $gasto->fecha }}
                                         </td>
                                         <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                                            <p class="text-gray-900 whitespace-no-wrap font-bold">{{ $gasto->concepto }}</p>
+                                            <a href="{{ route('gastos.show', $gasto) }}" class="text-blue-600 hover:text-blue-900 whitespace-no-wrap font-bold hover:underline">
+                                                {{ $gasto->concepto }}
+                                            </a>
                                             <p class="text-gray-600 text-xs">{{ $gasto->categoria->nombre ?? 'Sin categoría' }}</p>
                                             <div class="mt-1">
                                                 @foreach($gasto->etiquetas as $etiqueta)
@@ -64,6 +66,21 @@
                                         </td>
                                         <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                                             {{ ucfirst($gasto->estatus) }}
+                                        </td>
+                                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                            <div class="flex items-center gap-2">
+                                                <a href="{{ route('gastos.edit', $gasto) }}" class="text-indigo-600 hover:text-indigo-900 font-bold">
+                                                    Editar
+                                                </a>
+
+                                                <form action="{{ route('gastos.destroy', $gasto) }}" method="POST" 
+                                                    onsubmit="return confirm('¿Estás seguro de querer borrar este gasto?');">
+                                                    @csrf
+                                                    @method('DELETE') <button type="submit" class="text-red-600 hover:text-red-900 font-bold ml-2">
+                                                        Borrar
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                     @endforeach

@@ -78,14 +78,17 @@
                             @error('comprobante') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
-                        <div class="flex items-center justify-between">
-                            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-                                Guardar Gasto
-                            </button>
-                            <a href="{{ route('gastos.index') }}" class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
-                                Cancelar
-                            </a>
-                        </div>
+                        <div class="flex items-center justify-end mt-4 gap-4">
+    
+    <a href="{{ route('gastos.index') }}" class="text-gray-600 hover:text-gray-900 underline">
+        Cancelar
+    </a>
+
+    <button type="submit" 
+            class="bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-500 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 py-2 px-4">
+        Guardar Gasto
+    </button>
+</div>
                     </form>
 
                 </div>

@@ -80,7 +80,11 @@ class GastoController extends Controller
      */
     public function show(Gasto $gasto)
     {
-        //
+        if ($gasto->usuario_id !== Auth::id()) {
+        abort(403);
+    }
+
+    return view('gastos.show', compact('gasto'));
     }
 
     /**
@@ -88,7 +92,14 @@ class GastoController extends Controller
      */
     public function edit(Gasto $gasto)
     {
-        //
+        if ($gasto->usuario_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $categorias = Categoria::all();
+        $etiquetas = Etiqueta::all();
+        
+        return view('gastos.edit', compact('gasto', 'categorias', 'etiquetas'));
     }
 
     /**
@@ -96,14 +107,61 @@ class GastoController extends Controller
      */
     public function update(Request $request, Gasto $gasto)
     {
-        //
+        if ($gasto->usuario_id !== Auth::id()) {
+            abort(403);
+        }
+
+        // 2. Validación 
+        $request->validate([
+            'concepto' => 'required|string|max:255',
+            'monto' => 'required|numeric|min:1',
+            'fecha' => 'required|date',
+            'categoria_id' => 'required|exists:categorias,id',
+            'comprobante' => 'nullable|file|mimes:jpg,png,pdf|max:2048', // Nullable: No es obligatorio subir foto nueva
+        ]);
+
+        // 3. Manejo de Archivo (Si subieron uno nuevo)
+        if ($request->hasFile('comprobante')) {
+            
+            
+            $rutaArchivo = $request->file('comprobante')->store('comprobantes', 'public');
+            $gasto->ruta_comprobante = $rutaArchivo;
+        }
+
+        // 4. Actualizar datos
+        $gasto->update([
+            'categoria_id' => $request->categoria_id,
+            'concepto' => $request->concepto,
+            'monto' => $request->monto,
+            'fecha' => $request->fecha,
+            
+        ]);
+
+        // 5. Actualizar Etiquetas (Sincronizar)
+        if ($request->has('etiquetas')) {
+            $gasto->etiquetas()->sync($request->etiquetas); // sync: Borra las viejas y pone las nuevas
+        } else {
+            $gasto->etiquetas()->detach(); // Si desmarcó todas, quitamos las relaciones
+        }
+
+        return redirect()->route('gastos.index')->with('success', '¡Gasto actualizado correctamente!');
     }
 
     /**
      * Elimina el gasto.
      */
     public function destroy(Gasto $gasto)
-    {
-        //
+{
+    // 1. Verificar dueño
+    if ($gasto->usuario_id !== Auth::id()) {
+        abort(403);
     }
+
+    // 2. Borrar (Soft Delete)
+    $gasto->etiquetas()->detach();
+    $gasto->delete();
+
+    // 3. Redirigir 
+    return redirect()->route('gastos.index')->with('success', '¡Gasto eliminado correctamente!');
+}
 }

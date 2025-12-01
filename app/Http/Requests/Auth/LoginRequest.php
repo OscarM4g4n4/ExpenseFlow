@@ -44,7 +44,7 @@ class LoginRequest extends FormRequest
         // IMPORTANTE: Aquí le decimos que use 'correo' para buscar en la BD
         if (! Auth::attempt($this->only('correo', 'password'), $this->boolean('remember'))) {
         RateLimiter::hit($this->throttleKey());
-        dd('Falló la autenticación: Credenciales incorrectas');   
+           
         throw ValidationException::withMessages([
                 'correo' => trans('auth.failed'), // El mensaje de error va al campo 'correo'
             ]);
