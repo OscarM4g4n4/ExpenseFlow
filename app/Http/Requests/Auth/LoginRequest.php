@@ -27,7 +27,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'correo' => ['required', 'string', 'email'],
+            'correo' => ['required', 'string', 'email'], // Aquí cambiamos email por correo
             'password' => ['required', 'string'],
         ];
     }
@@ -41,11 +41,12 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+        // IMPORTANTE: Aquí le decimos que use 'correo' para buscar en la BD
         if (! Auth::attempt($this->only('correo', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
-
-            throw ValidationException::withMessages([
-                'correo' => trans('auth.failed'),
+        RateLimiter::hit($this->throttleKey());
+        dd('Falló la autenticación: Credenciales incorrectas');   
+        throw ValidationException::withMessages([
+                'correo' => trans('auth.failed'), // El mensaje de error va al campo 'correo'
             ]);
         }
 
@@ -60,19 +61,17 @@ class LoginRequest extends FormRequest
     public function ensureIsNotRateLimited(): void
     {
         if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
-            return;
+            event(new Lockout($this));
+
+            $seconds = RateLimiter::availableIn($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'correo' => trans('auth.throttle', [
+                    'seconds' => $seconds,
+                    'minutes' => ceil($seconds / 60),
+                ]),
+            ]);
         }
-
-        event(new Lockout($this));
-
-        $seconds = RateLimiter::availableIn($this->throttleKey());
-
-        throw ValidationException::withMessages([
-            'correo' => trans('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => ceil($seconds / 60),
-            ]),
-        ]);
     }
 
     /**
@@ -80,6 +79,7 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('correo')).'|'.$this->ip());
+        // También cambiamos aquí input('email') por input('correo')
+        return Str::transliterate(Str::lower($this->input('correo')).'|'.$this->ip());
     }
 }

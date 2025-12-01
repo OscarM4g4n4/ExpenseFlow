@@ -17,7 +17,15 @@ class GastoFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+        'concepto' => fake()->sentence(3), 
+        'monto' => fake()->randomFloat(2, 10, 5000), 
+        'fecha' => fake()->dateTimeBetween('-3 months', 'now'), 
+        'estatus' => fake()->randomElement(['pendiente', 'aprobado', 'rechazado']),
+        'ruta_comprobante' => 'comprobantes/ejemplo.jpg', 
+        
+       
+        'usuario_id' => \App\Models\User::inRandomOrder()->first()->id ?? 1,
+        'categoria_id' => \App\Models\Categoria::inRandomOrder()->first()->id ?? 1,
         ];
     }
 }

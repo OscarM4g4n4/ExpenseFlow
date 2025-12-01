@@ -25,23 +25,13 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-       $request->validate([
-        'nombre' => ['required', 'string', 'max:255'],
-        //  unique:usuarios es la tabla, y el input es 'correo'
-        'correo' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:usuarios'], 
-        'password' => ['required', 'confirmed', Rules\Password::defaults()],
-    ]);
-
-    $user = User::create([
-        'nombre' => $request->nombre,
-        'correo' => $request->correo, // Usamos correo
-        'password' => Hash::make($request->password),
-        'rol' => 'empleado',
-    ]);
+        // 1. Autenticar (usa tu LoginRequest con 'correo')
         $request->authenticate();
 
+        // 2. Regenerar sesión por seguridad
         $request->session()->regenerate();
 
+        
         return redirect()->intended(RouteServiceProvider::HOME);
     }
 

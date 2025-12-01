@@ -13,6 +13,19 @@ return new class extends Migration
     {
         Schema::create('gastos', function (Blueprint $table) {
             $table->id();
+        
+            // Relaciones (Foreign Keys)
+            
+            $table->foreignId('usuario_id')->constrained('usuarios')->onDelete('cascade');
+            $table->foreignId('categoria_id')->constrained('categorias')->onDelete('cascade');
+        
+            $table->string('concepto');
+            $table->decimal('monto', 10, 2); // 10 dígitos total, 2 decimales
+            $table->date('fecha');
+            $table->enum('estatus', ['pendiente', 'aprobado', 'rechazado'])->default('pendiente');
+            $table->string('ruta_comprobante'); // Para guardar la ruta del archivo
+        
+            $table->softDeletes(); // Borrado lógico
             $table->timestamps();
         });
     }
