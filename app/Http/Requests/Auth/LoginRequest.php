@@ -39,7 +39,7 @@ class LoginRequest extends FormRequest
      */
     public function authenticate(): void
     {
-        $this->ensureIsNotRateLimited();
+        //$this->ensureIsNotRateLimited();
 
         // IMPORTANTE: Aquí le decimos que use 'correo' para buscar en la BD
         if (! Auth::attempt($this->only('correo', 'password'), $this->boolean('remember'))) {

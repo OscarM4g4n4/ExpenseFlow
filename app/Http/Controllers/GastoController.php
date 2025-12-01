@@ -2,62 +2,107 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Gasto;
+use App\Models\Categoria;
+use App\Models\Etiqueta;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class GastoController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Muestra el listado de gastos.
      */
     public function index()
     {
-        return "Hola, aquí irán los gastos";
+        // Eager Loading para optimizar consultas (N+1)
+        $gastos = Gasto::where('usuario_id', Auth::id())
+                    ->with(['categoria', 'etiquetas'])
+                    ->latest()
+                    ->get();
+
+        return view('gastos.index', compact('gastos'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Muestra el formulario para crear un nuevo gasto.
      */
     public function create()
     {
-        //
+        $categorias = Categoria::all();
+        $etiquetas = Etiqueta::all();
+        
+        return view('gastos.create', compact('categorias', 'etiquetas'));
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Guarda el nuevo gasto en la base de datos.
      */
     public function store(Request $request)
     {
-        //
+        // 1. VALIDACIÓN
+        $request->validate([
+            'concepto' => 'required|string|max:255',
+            'monto' => 'required|numeric|min:1',
+            'fecha' => 'required|date',
+            'categoria_id' => 'required|exists:categorias,id',
+            'comprobante' => 'required|file|mimes:jpg,png,pdf|max:2048', // Max 2MB
+        ]);
+
+        // 2. SUBIDA DE ARCHIVO
+        $rutaArchivo = null;
+        if ($request->hasFile('comprobante')) {
+            $rutaArchivo = $request->file('comprobante')->store('comprobantes', 'public');
+        }
+
+        // 3. GUARDAR EN BD
+        $gasto = Gasto::create([
+            'usuario_id' => Auth::id(),
+            'categoria_id' => $request->categoria_id,
+            'concepto' => $request->concepto,
+            'monto' => $request->monto,
+            'fecha' => $request->fecha,
+            'ruta_comprobante' => $rutaArchivo,
+            'estatus' => 'pendiente'
+        ]);
+
+        // 4. RELACIÓN MUCHOS A MUCHOS (Etiquetas)
+        if ($request->has('etiquetas')) {
+            $gasto->etiquetas()->attach($request->etiquetas);
+        }
+
+        // 5. REDIRECCIONAR
+        return redirect()->route('gastos.index')->with('success', '¡Gasto registrado exitosamente!');
     }
 
     /**
-     * Display the specified resource.
+     * Muestra un gasto específico.
      */
-    public function show(string $id)
+    public function show(Gasto $gasto)
     {
         //
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Muestra el formulario de edición.
      */
-    public function edit(string $id)
+    public function edit(Gasto $gasto)
     {
         //
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualiza el gasto en la base de datos.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Gasto $gasto)
     {
         //
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina el gasto.
      */
-    public function destroy(string $id)
+    public function destroy(Gasto $gasto)
     {
         //
     }
